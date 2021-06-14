@@ -1,3 +1,7 @@
+from importlib import import_module
+from unittest import skip
+
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.http import HttpResponse
 from django.test import Client, TestCase
@@ -36,8 +40,18 @@ class TestViewResponses(TestCase):
         response = self.c.get(reverse('store:category_list', args=['django']))
         self.assertEqual(response.status_code, 200)
 
+    def test_allowed_host(self):
+        """
+        test allowed hosts
+        """
+        response = self.c.get('/', http_host='127.0.0.1')
+        self.assertEqual(response.status_code, 200)
+
     def test_home_html(self):
         request = HttpResponse()
+        engine = import_module(settings.SESSION_ENGINE)
+        request.session = engine.SessionStore() 
         response = index(request)
         html = response.content.decode('utf8')
         self.assertIn('<title> Home </title>', html)
+        self.assertEqual(response.status_code,200)
